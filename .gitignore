@@ -1,0 +1,8 @@
+# Per-install user config (the installer creates / prompts for this)
+CCM_Env.md
+
+# First-run scrub marker (per-install)
+.installed.flag
+
+# Local Claude permission overrides (per-install)
+.claude/settings.local.json

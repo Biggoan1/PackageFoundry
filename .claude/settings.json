@@ -1,0 +1,57 @@
+{
+  "_comment": "Default permissions for PackageFoundry (FAFOLAB SCCM packaging agent). Scoped to the paths and external sources the agent actually uses. Edit settings.local.json to add allowances locally without modifying this shipped baseline.",
+
+  "permissions": {
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+
+      "TaskCreate",
+      "TaskUpdate",
+      "TaskList",
+      "TaskGet",
+      "TaskOutput",
+      "TaskStop",
+      "ToolSearch",
+
+      "Edit(C:\\distrib\\**)",
+      "Edit(//sccm1/Sources/**)",
+      "Edit(//sccm1/**/Sources/**)",
+      "Edit(C:\\PackageFoundry\\**)",
+      "Edit(C:\\Users\\*\\.claude\\projects\\**)",
+      "Edit(C:\\Users\\*\\.claude\\commands\\**)",
+
+      "Write(C:\\distrib\\**)",
+      "Write(//sccm1/Sources/**)",
+      "Write(//sccm1/**/Sources/**)",
+      "Write(C:\\PackageFoundry\\**)",
+      "Write(C:\\Users\\*\\.claude\\projects\\**)",
+      "Write(C:\\Users\\*\\.claude\\commands\\**)",
+      "Write(C:\\Windows\\Temp\\**)",
+      "Write(C:\\Temp\\**)",
+
+      "PowerShell",
+      "Bash",
+
+      "WebFetch(domain:patchmypc.com)",
+      "WebFetch(domain:ideas.patchmypc.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:api.github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:gist.githubusercontent.com)",
+      "WebFetch(domain:nodejs.org)",
+      "WebFetch(domain:learn.microsoft.com)",
+      "WebFetch(domain:docs.microsoft.com)",
+      "WebFetch(domain:www.microsoft.com)",
+      "WebFetch(domain:visualstudio.com)",
+      "WebFetch(domain:marketplace.visualstudio.com)",
+      "WebFetch(domain:www.powershellgallery.com)",
+      "WebFetch(domain:nuget.org)",
+      "WebFetch(domain:www.nuget.org)",
+      "WebFetch(domain:api.nuget.org)",
+
+      "WebSearch"
+    ]
+  }
+}
