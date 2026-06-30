@@ -6,3 +6,6 @@ CCM_Env.md
 
 # Local Claude permission overrides (per-install)
 .claude/settings.local.json
+
+# CCM client install helper (kept local, not distributed)
+Install-CCMClient.ps1

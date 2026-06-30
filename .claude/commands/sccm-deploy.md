@@ -23,8 +23,11 @@ Run `winget show --id <PackageId> --source winget` and check the **Installer Typ
 | `wix` / `msi` | MSI — use msiexec directly (see Phase 3a) |
 | `nullsoft` / `inno` / `burn` | EXE — use winget Script DT (see Phase 3b) |
 | `portable` / `zip` | Portable — copy + PATH script (see Phase 3c) |
+| InstallShield (local vendor EXE) | InstallScript-MSI — extract & deploy the inner MSI (see Phase 3d) |
 
 Also note the **version**, **Installer URL**, and **Installer SHA256** for staging.
+
+For a **local vendor EXE** that isn't in winget, check `(Get-Item setup.exe).VersionInfo.OriginalFilename`. If it reads `InstallShield Setup.exe` (and the launched setup writes a `Setup.INI` with `ScriptDriven=1`), it is an InstallScript-MSI — go to **Phase 3d**, and do not waste time recording a `setup.iss`.
 
 ---
 
@@ -147,6 +150,27 @@ if (Test-Path $exe) {
 }
 ```
 Adapt version parsing to the specific app's `--version` output format.
+
+**Deployment type settings:**
+- `InstallationBehaviorType`: `InstallForSystem`
+- `LogonRequirementType`: `WhetherOrNotUserLoggedOn`
+
+---
+
+## Phase 3d — InstallShield InstallScript-MSI (extract the inner MSI)
+
+Some vendor EXEs (usually local, not in winget — e.g. GE EnerVista) are **InstallShield InstallScript-MSI** packages. Identify per Phase 1 (`OriginalFilename` = `InstallShield Setup.exe`, `Setup.INI` has `ScriptDriven=1` + a `ProductCode`).
+
+**These cannot be installed silently through `setup.exe`.** `setup.exe /s [/f1 recorded.iss] /v"/qn"` returns InstallShield `ResultCode=-3` (see `setup.log`) and rolls back — *even with a correctly recorded `setup.iss`*. The inner MSI itself installs fine; the InstallScript engine is what fails. Deploy the inner MSI directly instead.
+
+1. **Get the MSI.** Launch the EXE once; it caches the extracted MSI to `%LOCALAPPDATA%\Downloaded Installations\{PackageCode}\` (per `Setup.INI` `CacheFolder=Downloaded Installations`). Grab the `.msi` (+ any `.ini`). ProductCode/Version come from `Setup.INI` or the MSI Property table.
+2. **Diff full-install vs bare-MSI** with a verbose log (`/l*v`): a driver/child installer that shows only `FileCopy` and no matching `LaunchApp`/`CAQuietExec` means the **InstallScript ran it, not the MSI** — a bare `/qn` install will skip it. That diff is the wrapper's to-do list.
+3. **Deploy as a Script DT** (not `Add-CMMsiDeploymentType`) when the install needs side-effects the MSI alone won't do (driver staging, cert trust, child MSIs). Wrapper `Install.ps1`:
+   - Import vendor code-signing certs into `LocalMachine\TrustedPublisher` via **.NET `X509Store`** — NOT `Import-Certificate`/the `Cert:` PSDrive, which fails under `-NoProfile`/SYSTEM with *"a drive with the name 'Cert' does not exist"*.
+   - `msiexec /i "<inner>.msi" /qn …` then pre-stage drivers with `pnputil /add-driver *.inf /install` (export them from a reference install via `pnputil /export-driver`; RNDIS-style drivers carry only `.inf` + `.cat`, no custom `.sys`).
+   - Detection: ProductCode reg key under **both** native and `WOW6432Node` Uninstall, `DisplayVersion -ge`.
+
+**Reboot note — the one sanctioned exception to the house "never `/norestart`" rule:** for a **SYSTEM-context driver install**, add `/norestart REBOOT=ReallySuppress` to the msiexec args so the MSI can't reboot a client mid-deploy, and have the wrapper return `3010` itself if any step reports a pending reboot. The plain-MSI rule (ship `/qn` only, let SCCM act on 3010/1641 via the DT exit-code table) still stands for everything else — this override is *only* for packages that install drivers under SYSTEM.
 
 **Deployment type settings:**
 - `InstallationBehaviorType`: `InstallForSystem`
