@@ -36,9 +36,15 @@ For a **local vendor EXE** that isn't in winget, check `(Get-Item setup.exe).Ver
 Folder convention: `D:\Sources\<App Name> <Version>\`
 
 Sub-folders:
-- `Scripts\` — Install, Uninstall, Detect PS1 files
+- `Scripts\` — Install + Uninstall PS1 files
 - `Icons\` — PNG icon (invoke `/sccm-find-icon` for this)
 - `Content\` — binaries only if portable/EXE; MSI goes in root
+
+At the source-folder **root**, always ship two plain-text docs (full spec in **Phase 9**):
+- `SCCM_Commands.txt` — copy/paste DT commands + the detection script **inline**
+- `PACKAGING_NOTES.txt` — source, install logic, file manifest, logs, upgrade notes
+
+Do **not** ship a separate `Detect.ps1` in the source folder — the detection script is embedded in the DT (Phase 5) and written inline into `SCCM_Commands.txt`. (A local Detect.ps1 is fine for authoring the `ScriptText`; just don't copy it to the source folder.)
 
 Always use **PSSession + Copy-Item -ToSession** (never direct UNC writes):
 ```powershell
@@ -291,6 +297,29 @@ Get-CMApplication -Name '<App> <Ver>' | Select-Object LocalizedDisplayName, Soft
 ```powershell
 Invoke-WMIMethod -Namespace root\ccm -Class SMS_Client -Name TriggerSchedule -ArgumentList '{00000000-0000-0000-0000-000000000021}'
 ```
+
+---
+
+## Phase 9 — Ship the package docs (NOT optional)
+
+Every package source folder **must** contain two plain-text files at its root. Create them as part of the build (Phase 2 staging) and confirm they exist before reporting done — they are how the user rebuilds apps in the separate prod SCCM environment.
+
+**`SCCM_Commands.txt`** — copy/paste-ready DT settings (plain text, no markdown/code fences):
+- App name + content location + icon filename
+- Install command (exact string) and Uninstall command (exact string)
+- **Detection script contents inline**, between `----- begin detection script -----` / `----- end detection script -----` markers (do NOT ship a separate `Detect.ps1`)
+- Install behavior (system/user), logon requirement, user experience, max/est run time, dependencies
+- For MSI apps: ProductCode, DisplayVersion, install path
+- Log file paths the wrapper writes
+- A full copy-paste `New-CMApplication` / `Add-CMScriptDeploymentType` (or `Add-CMMsiDeploymentType`) rebuild block
+- A short dated "Why <change>" note at the bottom for non-obvious choices
+
+**`PACKAGING_NOTES.txt`** — the non-obvious context that isn't in the mechanical DT settings:
+- Title line + `===` underline
+- **Source** (vendor/URL/store id), **What this is**, **How it installs** (logic + context + caveats)
+- **Files in this package** (file → purpose table), **Install logs** (paths), **Upgrade notes** (supersedence)
+
+**HARD RULE:** any time a DT field changes (install/uninstall command, detection, install behavior, logon requirement, user experience, run time, dependencies, content location) — including one-off `Set-CMScriptDeploymentType`/`Set-CMMsiDeploymentType` tweaks — update `SCCM_Commands.txt` in the **same** operation and push it back to the source folder before reporting done.
 
 ---
 
