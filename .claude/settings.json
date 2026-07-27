@@ -22,14 +22,8 @@
       "Edit(C:\\Users\\*\\.claude\\projects\\**)",
       "Edit(C:\\Users\\*\\.claude\\commands\\**)",
 
-      "Write(C:\\distrib\\**)",
-      "Write(//sccm1/Sources/**)",
-      "Write(//sccm1/**/Sources/**)",
-      "Write(C:\\PackageFoundry\\**)",
-      "Write(C:\\Users\\*\\.claude\\projects\\**)",
-      "Write(C:\\Users\\*\\.claude\\commands\\**)",
-      "Write(C:\\Windows\\Temp\\**)",
-      "Write(C:\\Temp\\**)",
+      "Edit(C:\\Windows\\Temp\\**)",
+      "Edit(C:\\Temp\\**)",
 
       "PowerShell",
       "Bash",
