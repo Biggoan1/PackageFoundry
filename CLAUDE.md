@@ -44,6 +44,7 @@ In both modes, still produce `SCCM_Commands.txt` and `PACKAGING_NOTES.txt` - the
 @knowledge/feedback_sccm_icons.md
 @knowledge/feedback_sccm_log_path.md
 @knowledge/feedback_sccm1_remote_ps_limitations.md
+@knowledge/feedback_running_on_site_server.md
 @knowledge/feedback_vsix_install_pattern.md
 
 ## Slash commands available
