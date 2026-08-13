@@ -59,3 +59,11 @@ In both modes, still produce `SCCM_Commands.txt` and `PACKAGING_NOTES.txt` - the
 - Site connection (Full mode only) uses the site code and FQDN from `CCM_Env.md`. If they look wrong, ask before proceeding.
 - All install/uninstall logs land at the path in `CCM_Env.md` (Client Log Path), not `C:\Windows\Temp`.
 
+## Fallback: pi + local Qwen when Claude login expires
+
+This agent can also run headlessly via the pi coding-agent CLI (`npm` package `@earendil-works/pi-coding-agent`) driven by the labs local Qwen3-Coder-Next-Q8 model on AI3, as a fallback when the Claude Code subscription OAuth session on this box has expired and cannot be refreshed.
+
+Setup: `npm install -g @earendil-works/pi-coding-agent`; create a `models.json` under the pi agent config dir with a `fafo` provider pointing at `http://10.100.0.13:8080/v1` (`api: openai-completions`, `apiKey: noop`, `modelId: qwen3-coder-next-q8`); then run `pi --provider fafo --model qwen3-coder-next-q8 -p` with the task written out as a plain-text prompt or attached file (pi does not understand this repo’s Claude Code slash commands like `/sccm-deploy`—inline the relevant playbook steps instead).
+
+Verified working end-to-end 2026-08-13 packaging Unsloth Desktop 0.1.701-beta.
+
